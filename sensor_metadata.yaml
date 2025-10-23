@@ -1,0 +1,17 @@
+Warsaw:
+  id: 10776
+  35996:
+    parameter: "bc"
+    unit: "µg/m³"
+  36156:
+    parameter: "co"
+    unit: "µg/m³"
+  36160:
+    parameter: "no2"
+    unit: "µg/m³"
+  36161:
+    parameter: "pm10"
+    unit: "µg/m³"
+  36162:
+    parameter: "pm25"
+    unit: "µg/m³"
