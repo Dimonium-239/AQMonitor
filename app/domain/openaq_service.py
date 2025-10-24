@@ -4,18 +4,19 @@ from typing import List
 
 from app.domain.mapper import to_air_quality
 from app.domain.model.air_quality import AirQualityMeasurement
+from app.domain.model.config import OpenAQConfig
 from app.persistance.config_loader import load_config
 from app.persistance.model.measurement_entity import MeasurementEntity
 from app.persistance.repositories.measurement_repository import MeasurementRepository
 from app.persistance.sensor_metadata_loader import load_sensor_metadata
 
-class OpenAQAirQualityRepository:
+class OpenAQAirQualityService:
     """Repository fetching air quality data for Warsaw from OpenAQ API (v3)."""
 
     def __init__(self, measurement_repo: MeasurementRepository):
-        config = load_config()
-        self.base_url = config.openaq.base_url
-        self.api_key = config.openaq.api_key
+        self.config = load_config()
+        self.base_url = self.config.openaq.base_url
+        self.api_key = self.config.openaq.api_key
         self.sensor_metadata = load_sensor_metadata()
         self.measurement_repo = measurement_repo
 

@@ -1,7 +1,5 @@
 from pydantic import BaseModel
 from typing import Optional
-import yaml
-from pathlib import Path
 
 class OpenAQConfig(BaseModel):
     base_url: str

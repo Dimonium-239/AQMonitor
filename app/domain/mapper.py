@@ -11,3 +11,14 @@ def to_air_quality(m: MeasurementEntity) -> AirQualityMeasurement:
         unit=m.unit,
         timestamp=m.timestamp,
     )
+
+
+def to_entity(model: AirQualityMeasurement) -> MeasurementEntity:
+    return MeasurementEntity(
+        id=model.id or None,
+        city=model.city,
+        parameter=model.parameter,
+        value=model.value,
+        unit=model.unit,
+        timestamp=model.timestamp,
+    )
