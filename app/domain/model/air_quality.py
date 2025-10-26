@@ -1,8 +1,7 @@
-from dataclasses import dataclass
 from datetime import datetime
+from pydantic import BaseModel
 
-@dataclass
-class AirQualityMeasurement:
+class AirQualityMeasurement(BaseModel):
     id: str
     city: str
     parameter: str

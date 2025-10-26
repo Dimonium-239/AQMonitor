@@ -12,9 +12,15 @@ class SQLMeasurementRepository(MeasurementRepository):
     def __init__(self, db: Session):
         self.db = db
 
-    def get_all(self) -> list[AirQualityMeasurement]:
-        db_items = self.db.query(MeasurementDB).all()
-        return [to_domain(i) for i in db_items]
+    def get_all(self, page: int = 1, page_size: int = 10) -> tuple[list[AirQualityMeasurement], int]:
+        total = self.db.query(MeasurementDB).count()
+        db_items = (
+            self.db.query(MeasurementDB)
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+            .all()
+        )
+        return [to_domain(i) for i in db_items], total
 
     def get_by_id(self, measurement_id: str) -> Optional[MeasurementEntity]:
         db_item = self.db.query(MeasurementDB).filter(MeasurementDB.id == measurement_id).first()
