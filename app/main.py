@@ -1,27 +1,35 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from app.persistance.config_loader import load_config
 from app.adapters.restapi.air_quality_controller import router as air_router
-from app.persistance.database import Base, engine
+from app.domain.model.config import load_config
+from app.persistance.database import init_db
 
 config = load_config()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # --- Startup logic ---
-    if config.db != "in_memory":  # Only create tables if using real DB
+    if config.repository_type != "mock":
         print("Checking/creating tables in database...")
-        Base.metadata.create_all(bind=engine)  # Only creates tables if not exist
-        print("✅ Tables ready")
+        init_db()
+        print("Tables ready")
     yield
-    # --- Shutdown logic (optional) ---
 
-# Pass lifespan to FastAPI
 app = FastAPI(title="Hexagonal FastAPI Example", lifespan=lifespan)
-
-# Include routes
 app.include_router(air_router, prefix="/api", tags=["Air Quality"])
+
+from fastapi.middleware.cors import CORSMiddleware
+
+origins = ["http://localhost:5173",
+           "https://aq-monitor-fe.vercel.app"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 async def root():

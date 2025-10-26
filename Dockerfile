@@ -7,9 +7,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-ENV PORT=8080
-ENV DATABASE_URL=postgresql+psycopg2://postgres:postgres@db:5432/aq-monitor-db
-
 EXPOSE 8080
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]

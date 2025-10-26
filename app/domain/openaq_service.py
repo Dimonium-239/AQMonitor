@@ -4,8 +4,7 @@ from typing import List
 
 from app.domain.mapper import to_air_quality
 from app.domain.model.air_quality import AirQualityMeasurement
-from app.domain.model.config import OpenAQConfig
-from app.persistance.config_loader import load_config
+from app.domain.model.config import load_config
 from app.persistance.model.measurement_entity import MeasurementEntity
 from app.persistance.repositories.measurement_repository import MeasurementRepository
 from app.persistance.sensor_metadata_loader import load_sensor_metadata
