@@ -13,11 +13,11 @@ from app.persistance.entity_mapper import to_domain, to_entity
 from app.persistance.model.measurement_entity import MeasurementEntity
 from app.persistance.repositories.measurement_repository import MeasurementRepository
 
-class SQLMeasurementRepository(MeasurementRepository, ABC):
+class SQLMeasurementRepository(MeasurementRepository):
     def __init__(self, db: Session):
         self.db = db
 
-    def get_char_data(
+    def get_chart_data(
         self,
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
@@ -26,7 +26,6 @@ class SQLMeasurementRepository(MeasurementRepository, ABC):
     ):
         query = self.db.query(MeasurementDB)
 
-        # Apply date filter
         if start_date and end_date:
             query = query.filter(MeasurementDB.timestamp.between(start_date, end_date))
         elif start_date:

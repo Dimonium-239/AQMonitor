@@ -6,7 +6,6 @@ from typing import List, Optional
 from app.adapters.restapi.dependecies import get_measurement_repository
 from app.domain.mapper import to_air_quality
 from app.domain.model.air_quality import AirQualityMeasurement
-from app.domain.model.air_quality_measurement_pageable import AirQualityMeasurementPageable
 from app.persistance.model.measurement_entity import MeasurementEntity
 from app.persistance.repositories.measurement_repository import MeasurementRepository
 from app.domain.openaq_service import OpenAQAirQualityService
