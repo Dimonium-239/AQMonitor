@@ -1,7 +1,6 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, Query, HTTPException
-from typing import List, Optional
+from typing import Optional
 
 from app.adapters.restapi.dependecies import get_measurement_repository
 from app.domain.mapper import to_air_quality
@@ -11,12 +10,24 @@ from app.persistance.repositories.measurement_repository import MeasurementRepos
 from app.domain.openaq_service import OpenAQAirQualityService
 from app.persistance.sensor_metadata_loader import load_sensor_metadata
 
+from fastapi import APIRouter, Depends, Response, status, Query
+from typing import List
+
 router = APIRouter()
 
 @router.get("/air/measurements", response_model=List[AirQualityMeasurement])
-def get_air_quality(city: str = "Warsaw", repo=Depends(get_measurement_repository)) -> List[AirQualityMeasurement]:
+def get_air_quality(
+    city: str = "Warsaw",
+    repo=Depends(get_measurement_repository)
+):
     use_case = OpenAQAirQualityService(measurement_repo=repo)
-    return use_case.get_latest_measurements(city)
+    new_measurements = use_case.get_latest_measurements(city)
+    if not new_measurements:
+        # ✅ Return an *empty* 204 response properly
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+    return new_measurements
+
 
 @router.get("/air/measurements/chart-data", response_model=List[AirQualityMeasurement])
 def get_chart_data(

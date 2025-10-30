@@ -19,7 +19,7 @@ class OpenAQAirQualityService:
         self.sensor_metadata = load_sensor_metadata()
         self.measurement_repo = measurement_repo
 
-    def get_latest_measurements(self, city) -> List[AirQualityMeasurement]:
+    def get_latest_measurements(self, city: str) -> List[AirQualityMeasurement]:
         location_id = self.sensor_metadata.get(city).get("id")
         url = f"{self.base_url}/locations/{location_id}/latest"
         headers = {"X-API-Key": self.api_key}
@@ -30,17 +30,28 @@ class OpenAQAirQualityService:
         results = []
         city_metadata = self.sensor_metadata.get(city, {})
         for m in data.get("results", []):
-            sensor_id = m["sensorsId"]
+            sensor_id = m.get("sensorsId")
             param_info = city_metadata.get(sensor_id, {"parameter": "unknown", "unit": "unknown"})
 
+            timestamp = datetime.fromisoformat(m["datetime"]["utc"].replace("Z", "+00:00"))
+            parameter = param_info["parameter"]
+            value = m["value"]
+
+            exists = self.measurement_repo.measurement_exists(city=city, parameter=parameter, timestamp=timestamp)
+            if exists:
+                continue  # skip if already in DB
+
+            # Otherwise save new one
             measurement = MeasurementEntity(
                 city=city,
-                parameter=param_info["parameter"],
-                value=m["value"],
+                parameter=parameter,
+                value=value,
                 unit=param_info["unit"],
-                timestamp=datetime.fromisoformat(m["datetime"]["utc"].replace("Z", "+00:00")),
+                timestamp=timestamp,
             )
             saved = self.measurement_repo.add(measurement)
             results.append(to_air_quality(saved))
+
         return results
+
 

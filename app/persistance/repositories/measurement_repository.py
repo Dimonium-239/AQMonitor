@@ -25,3 +25,7 @@ class MeasurementRepository(ABC):
     @abstractmethod
     def add(self, measurement: MeasurementEntity) -> MeasurementEntity:
         pass
+
+    @abstractmethod
+    def measurement_exists(self, city: str, parameter: str, timestamp: datetime) -> bool:
+        pass

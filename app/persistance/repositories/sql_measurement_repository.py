@@ -81,3 +81,15 @@ class SQLMeasurementRepository(MeasurementRepository):
         self.db.commit()
         self.db.refresh(db_item)
         return to_entity(db_item)
+
+    def measurement_exists(self, city: str, parameter: str, timestamp: datetime) -> bool:
+        exists = (
+            self.db.query(MeasurementDB)
+            .filter(
+                MeasurementDB.city == city,
+                MeasurementDB.parameter == parameter,
+                MeasurementDB.timestamp == timestamp
+            )
+            .first()
+        )
+        return exists is not None
