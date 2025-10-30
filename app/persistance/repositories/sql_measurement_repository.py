@@ -1,9 +1,10 @@
 import uuid
+from abc import ABC
 from datetime import datetime
 from select import select
 from typing import Optional, cast, List
 
-from sqlalchemy import func
+from sqlalchemy import func, asc, desc
 from sqlalchemy.orm import Session
 
 from app.domain.model.air_quality import AirQualityMeasurement
@@ -12,40 +13,51 @@ from app.persistance.entity_mapper import to_domain, to_entity
 from app.persistance.model.measurement_entity import MeasurementEntity
 from app.persistance.repositories.measurement_repository import MeasurementRepository
 
-class SQLMeasurementRepository(MeasurementRepository):
+class SQLMeasurementRepository(MeasurementRepository, ABC):
     def __init__(self, db: Session):
         self.db = db
 
-    def get_all(
-            self,
-            page: int = 1,
-            page_size: int = 10,
-            start_date: Optional[datetime] = None,
-            end_date: Optional[datetime] = None,
-            parameters: Optional[List[str]] = None,
-            paginated: bool = True
+    def get_char_data(
+        self,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
+        parameters: Optional[List[str]] = None,
+        sort_by: Optional[List[str]] = None,
     ):
         query = self.db.query(MeasurementDB)
 
         # Apply date filter
         if start_date and end_date:
-            query = query.filter(
-                MeasurementDB.timestamp.between(start_date, end_date)
-            )
+            query = query.filter(MeasurementDB.timestamp.between(start_date, end_date))
+        elif start_date:
+            query = query.filter(MeasurementDB.timestamp >= start_date)
+        elif end_date:
+            query = query.filter(MeasurementDB.timestamp <= end_date)
 
         # Apply parameter filter
-        if parameters and len(parameters) > 0:
+        if parameters:
             query = query.filter(MeasurementDB.parameter.in_(parameters))
 
-        # Total count before pagination
-        total = query.count()
+        # Sorting logic
+        if sort_by:
+            sort_columns = []
+            for sort_item in sort_by:
+                try:
+                    field, direction = sort_item.split(":")
+                    column = getattr(MeasurementDB, field, None)
+                    if column is not None:
+                        sort_columns.append(asc(column) if direction.lower() == "asc" else desc(column))
+                except ValueError:
+                    # Skip invalid format
+                    continue
 
-        # Apply pagination
-        if paginated:
-            query = query.offset((page - 1) * page_size).limit(page_size)
+            if sort_columns:
+                query = query.order_by(*sort_columns)
+        else:
+            query = query.order_by(MeasurementDB.timestamp.asc())
 
         db_items = query.all()
-        return [to_domain(i) for i in db_items], total
+        return [to_domain(i) for i in db_items]
 
 
     def get_by_id(self, measurement_id: str) -> Optional[MeasurementEntity]:

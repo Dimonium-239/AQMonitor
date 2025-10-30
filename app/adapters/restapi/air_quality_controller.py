@@ -19,45 +19,22 @@ def get_air_quality(city: str = "Warsaw", repo=Depends(get_measurement_repositor
     use_case = OpenAQAirQualityService(measurement_repo=repo)
     return use_case.get_latest_measurements(city)
 
-@router.get("/air/measurements/persisted", response_model=AirQualityMeasurementPageable)
-def list_items(
-    page: int = Query(1, ge=1, description="Page number, starting from 1"),
-    page_size: int = Query(10, ge=1, le=200, description="Number of items per page"),
-    start_date: Optional[datetime] = Query(None, description="Filter start date (ISO)"),
-    end_date: Optional[datetime] = Query(None, description="Filter end date (ISO)"),
-    parameter: Optional[List[str]] = Query(None, description="Filter by parameter. Use multiple times: ?parameter=pm25&parameter=no2"),
-    repo: MeasurementRepository = Depends(get_measurement_repository)
-):
-    items, total = repo.get_all(
-        page=page,
-        page_size=page_size,
-        start_date=start_date,
-        end_date=end_date,
-        parameters=parameter,
-        paginated=True
-    )
-    return AirQualityMeasurementPageable(
-        page=page,
-        page_size=page_size,
-        total=total,
-        items=items
-    )
-
-
 @router.get("/air/measurements/chart-data", response_model=List[AirQualityMeasurement])
 def get_chart_data(
     start_date: Optional[datetime] = Query(None, description="Filter start date (ISO)"),
     end_date: Optional[datetime] = Query(None, description="Filter end date (ISO)"),
     parameter: Optional[List[str]] = Query([], description="Filter by parameter. Use multiple times: ?parameter=pm25&parameter=no2"),
-    repo: MeasurementRepository = Depends(get_measurement_repository)
+    sort_by: Optional[List[str]] = Query(
+        ["timestamp:asc"],
+        description="Sorting fields, e.g. ?sort_by=timestamp:asc&sort_by=city:desc",
+    ),
+    repo: MeasurementRepository = Depends(get_measurement_repository),
 ):
-    items, _ = repo.get_all(
-        page=0,
-        page_size=0,
+    items = repo.get_chart_data(
         start_date=start_date,
         end_date=end_date,
         parameters=parameter,
-        paginated=False
+        sort_by=sort_by,
     )
     return items
 
