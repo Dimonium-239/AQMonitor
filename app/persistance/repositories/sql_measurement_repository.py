@@ -1,17 +1,14 @@
 import uuid
-from abc import ABC
 from datetime import datetime
-from select import select
-from typing import Optional, cast, List
+from typing import Optional, List
 
-from sqlalchemy import func, asc, desc
+from sqlalchemy import asc, desc
 from sqlalchemy.orm import Session
 
-from app.domain.model.air_quality import AirQualityMeasurement
-from app.persistance.database import MeasurementDB
-from app.persistance.entity_mapper import to_domain, to_entity
+from app.domain.mapper import to_air_quality, to_entity
 from app.persistance.model.measurement_entity import MeasurementEntity
 from app.persistance.repositories.measurement_repository import MeasurementRepository
+
 
 class SQLMeasurementRepository(MeasurementRepository):
     def __init__(self, db: Session):
@@ -24,18 +21,18 @@ class SQLMeasurementRepository(MeasurementRepository):
         parameters: Optional[List[str]] = None,
         sort_by: Optional[List[str]] = None,
     ):
-        query = self.db.query(MeasurementDB)
+        query = self.db.query(MeasurementEntity)
 
         if start_date and end_date:
-            query = query.filter(MeasurementDB.timestamp.between(start_date, end_date))
+            query = query.filter(MeasurementEntity.timestamp.between(start_date, end_date))
         elif start_date:
-            query = query.filter(MeasurementDB.timestamp >= start_date)
+            query = query.filter(MeasurementEntity.timestamp >= start_date)
         elif end_date:
-            query = query.filter(MeasurementDB.timestamp <= end_date)
+            query = query.filter(MeasurementEntity.timestamp <= end_date)
 
         # Apply parameter filter
         if parameters:
-            query = query.filter(MeasurementDB.parameter.in_(parameters))
+            query = query.filter(MeasurementEntity.parameter.in_(parameters))
 
         # Sorting logic
         if sort_by:
@@ -43,7 +40,7 @@ class SQLMeasurementRepository(MeasurementRepository):
             for sort_item in sort_by:
                 try:
                     field, direction = sort_item.split(":")
-                    column = getattr(MeasurementDB, field, None)
+                    column = getattr(MeasurementEntity, field, None)
                     if column is not None:
                         sort_columns.append(asc(column) if direction.lower() == "asc" else desc(column))
                 except ValueError:
@@ -53,14 +50,14 @@ class SQLMeasurementRepository(MeasurementRepository):
             if sort_columns:
                 query = query.order_by(*sort_columns)
         else:
-            query = query.order_by(MeasurementDB.timestamp.asc())
+            query = query.order_by(MeasurementEntity.timestamp.asc())
 
         db_items = query.all()
-        return [to_domain(i) for i in db_items]
+        return [to_air_quality(i) for i in db_items]
 
 
     def get_by_id(self, measurement_id: str) -> Optional[MeasurementEntity]:
-        db_item = self.db.query(MeasurementDB).filter(MeasurementDB.id == measurement_id).first()
+        db_item = self.db.query(MeasurementEntity).filter(MeasurementEntity.id == measurement_id).first()
         if db_item:
             return to_entity(db_item)
         return None
@@ -69,7 +66,7 @@ class SQLMeasurementRepository(MeasurementRepository):
         if not measurement.id:
             measurement.id = str(uuid.uuid4())
 
-        db_item = MeasurementDB(
+        db_item = MeasurementEntity(
             id=measurement.id,
             city=measurement.city,
             parameter=measurement.parameter,
@@ -84,11 +81,11 @@ class SQLMeasurementRepository(MeasurementRepository):
 
     def measurement_exists(self, city: str, parameter: str, timestamp: datetime) -> bool:
         exists = (
-            self.db.query(MeasurementDB)
+            self.db.query(MeasurementEntity)
             .filter(
-                MeasurementDB.city == city,
-                MeasurementDB.parameter == parameter,
-                MeasurementDB.timestamp == timestamp
+                MeasurementEntity.city == city,
+                MeasurementEntity.parameter == parameter,
+                MeasurementEntity.timestamp == timestamp
             )
             .first()
         )

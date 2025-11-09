@@ -1,6 +1,6 @@
 from app.domain.model.config import load_config
+from app.persistance.model.measurement_entity import SessionLocal
 from app.persistance.repositories.sql_measurement_repository import SQLMeasurementRepository
-from app.persistance.database import SessionLocal
 
 configs = load_config()
 

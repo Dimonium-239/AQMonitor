@@ -10,7 +10,7 @@ from app.persistance.repositories.measurement_repository import MeasurementRepos
 from app.domain.openaq_service import OpenAQAirQualityService
 from app.persistance.sensor_metadata_loader import load_sensor_metadata
 
-from fastapi import APIRouter, Depends, Response, status, Query
+from fastapi import APIRouter, Depends, Response, status, Query, HTTPException
 from typing import List
 
 router = APIRouter()
