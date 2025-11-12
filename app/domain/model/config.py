@@ -1,6 +1,10 @@
+import os
 import yaml
 from pydantic import BaseModel
 from typing import Optional
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class OpenAQConfig(BaseModel):
     base_url: str
@@ -14,12 +18,19 @@ class AppConfig(BaseModel):
 
 def load_config() -> AppConfig:
     try:
-        """Load YAML config and return a validated AppConfig instance"""
         config_path = "./config.yaml"
+
         with open(config_path, "r") as f:
-            raw_cfg = yaml.safe_load(f)
+            raw_yaml = f.read()
+
+        resolved_yaml = os.path.expandvars(raw_yaml)
+
+        raw_cfg = yaml.safe_load(resolved_yaml)
         app_cfg = raw_cfg.get("app", {})
 
         return AppConfig(**app_cfg)
-    except Exception:
-        return AppConfig()  # fallback to defaults
+
+    except Exception as e:
+        print(f"Config load failed: {e}")
+        return AppConfig()
+

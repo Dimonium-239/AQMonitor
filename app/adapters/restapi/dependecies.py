@@ -11,6 +11,5 @@ def get_measurement_repository():
             yield SQLMeasurementRepository(db)
         finally:
             db.close()
-            return db
-    yield None
-    return None
+    else:
+        yield None

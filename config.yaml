@@ -1,0 +1,7 @@
+app:
+  name: Air Quality Monitor
+  environment: dev
+  repository_type: postgres
+  openaq:
+    base_url: "https://api.openaq.org/v3"
+    api_key: ${OPEN_AQ_KEY}
