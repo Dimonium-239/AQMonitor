@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, time
 from typing import Optional, List
 
 from sqlalchemy import asc, desc
@@ -15,13 +15,19 @@ class SQLMeasurementRepository(MeasurementRepository):
         self.db = db
 
     def get_chart_data(
-        self,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
-        parameters: Optional[List[str]] = None,
-        sort_by: Optional[List[str]] = None,
+            self,
+            start_date: Optional[datetime] = None,
+            end_date: Optional[datetime] = None,
+            parameters: Optional[List[str]] = None,
+            sort_by: Optional[List[str]] = None,
     ):
         query = self.db.query(MeasurementEntity)
+
+        if start_date:
+            start_date = datetime.combine(start_date.date(), time.min)
+
+        if end_date:
+            end_date = datetime.combine(end_date.date(), time.max)
 
         if start_date and end_date:
             query = query.filter(MeasurementEntity.timestamp.between(start_date, end_date))
@@ -30,11 +36,9 @@ class SQLMeasurementRepository(MeasurementRepository):
         elif end_date:
             query = query.filter(MeasurementEntity.timestamp <= end_date)
 
-        # Apply parameter filter
         if parameters:
             query = query.filter(MeasurementEntity.parameter.in_(parameters))
 
-        # Sorting logic
         if sort_by:
             sort_columns = []
             for sort_item in sort_by:
@@ -44,7 +48,6 @@ class SQLMeasurementRepository(MeasurementRepository):
                     if column is not None:
                         sort_columns.append(asc(column) if direction.lower() == "asc" else desc(column))
                 except ValueError:
-                    # Skip invalid format
                     continue
 
             if sort_columns:
