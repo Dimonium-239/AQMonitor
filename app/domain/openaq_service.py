@@ -22,6 +22,7 @@ class OpenAQAirQualityService:
     def get_latest_measurements(self, city: str) -> List[AirQualityMeasurement]:
         location_id = self.sensor_metadata.get(city).get("id")
         url = f"{self.base_url}/locations/{location_id}/latest"
+        print(self.api_key)
         headers = {"X-API-Key": self.api_key}
         response = requests.get(url, headers=headers)
         response.raise_for_status()
