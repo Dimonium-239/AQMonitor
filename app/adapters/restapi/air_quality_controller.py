@@ -1,6 +1,6 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, Query, HTTPException, status
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.adapters.restapi.dependecies import get_measurement_repository
 from app.domain.mapper import to_air_quality
@@ -142,7 +142,7 @@ def add_manual_measurement(
             parameter=parameter,
             value=value,
             unit=unit,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         )
 
         saved = repo.add(measurement)
@@ -178,6 +178,13 @@ def update_measurement(
         if not existing:
             raise HTTPException(status_code=404, detail="Measurement not found")
 
+        # Convert timestamp to UTC if provided
+        if timestamp:
+            if timestamp.tzinfo is None:
+                timestamp = timestamp.replace(tzinfo=timezone.utc)
+            else:
+                timestamp = timestamp.astimezone(timezone.utc)
+
         updated = MeasurementEntity(
             id=existing.id,
             city=city or existing.city,
@@ -189,6 +196,11 @@ def update_measurement(
 
         saved = repo.update(measurement_id, updated)
         return to_air_quality(saved)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
     except HTTPException:
         raise
