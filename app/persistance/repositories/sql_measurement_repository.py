@@ -93,3 +93,34 @@ class SQLMeasurementRepository(MeasurementRepository):
             .first()
         )
         return exists is not None
+
+    def update(self, measurement_id: str, updated_data: MeasurementEntity) -> Optional[MeasurementEntity]:
+        db_item = self.db.query(MeasurementEntity).filter(
+            MeasurementEntity.id == measurement_id
+        ).first()
+
+        if not db_item:
+            return None
+
+        # Update fields
+        db_item.city = updated_data.city
+        db_item.parameter = updated_data.parameter
+        db_item.value = updated_data.value
+        db_item.unit = updated_data.unit
+        db_item.timestamp = updated_data.timestamp
+
+        self.db.commit()
+        self.db.refresh(db_item)
+        return to_entity(db_item)
+
+    def delete(self, measurement_id: str) -> bool:
+        db_item = self.db.query(MeasurementEntity).filter(
+            MeasurementEntity.id == measurement_id
+        ).first()
+
+        if not db_item:
+            return False
+
+        self.db.delete(db_item)
+        self.db.commit()
+        return True

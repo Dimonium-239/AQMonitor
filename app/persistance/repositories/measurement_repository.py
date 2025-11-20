@@ -29,3 +29,11 @@ class MeasurementRepository(ABC):
     @abstractmethod
     def measurement_exists(self, city: str, parameter: str, timestamp: datetime) -> bool:
         pass
+
+    @abstractmethod
+    def update(self, measurement_id: str, updated_data: MeasurementEntity) -> Optional[MeasurementEntity]:
+        pass
+
+    @abstractmethod
+    def delete(self, measurement_id: str) -> bool:
+        pass

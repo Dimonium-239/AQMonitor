@@ -10,7 +10,6 @@ from app.persistance.repositories.measurement_repository import MeasurementRepos
 from app.persistance.sensor_metadata_loader import load_sensor_metadata
 
 class OpenAQAirQualityService:
-    """Repository fetching air quality data for Warsaw from OpenAQ API (v3)."""
 
     def __init__(self, measurement_repo: MeasurementRepository):
         self.config = load_config()
@@ -39,9 +38,8 @@ class OpenAQAirQualityService:
 
             exists = self.measurement_repo.measurement_exists(city=city, parameter=parameter, timestamp=timestamp)
             if exists:
-                continue  # skip if already in DB
+                continue
 
-            # Otherwise save new one
             measurement = MeasurementEntity(
                 city=city,
                 parameter=parameter,
