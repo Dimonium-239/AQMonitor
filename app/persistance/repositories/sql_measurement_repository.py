@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, time
+from datetime import datetime, time, timezone
 from typing import Optional, List
 
 from sqlalchemy import asc, desc
@@ -68,6 +68,14 @@ class SQLMeasurementRepository(MeasurementRepository):
     def add(self, measurement: MeasurementEntity) -> MeasurementEntity:
         if not measurement.id:
             measurement.id = str(uuid.uuid4())
+        ts = measurement.timestamp
+        if isinstance(ts, str):
+            ts = datetime.fromisoformat(ts)
+
+        if ts.tzinfo is None:
+            ts = ts.astimezone(timezone.utc)
+        else:
+            ts = ts.astimezone(timezone.utc)
 
         db_item = MeasurementEntity(
             id=measurement.id,
@@ -75,8 +83,9 @@ class SQLMeasurementRepository(MeasurementRepository):
             parameter=measurement.parameter,
             value=measurement.value,
             unit=measurement.unit,
-            timestamp=measurement.timestamp
+            timestamp=ts,  # always UTC now
         )
+
         self.db.add(db_item)
         self.db.commit()
         self.db.refresh(db_item)
