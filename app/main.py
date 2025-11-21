@@ -15,7 +15,7 @@ async def lifespan(app: FastAPI):
         print("Tables ready")
     yield
 
-app = FastAPI(title="Hexagonal FastAPI Example", lifespan=lifespan)
+app = FastAPI(title="Air Quality Monitor", lifespan=lifespan)
 app.include_router(air_router, prefix="/api", tags=["Air Quality"])
 
 from fastapi.middleware.cors import CORSMiddleware
